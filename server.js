@@ -6,7 +6,7 @@ const cheerio = require('cheerio');
 app.get('/api/ringtones', async (req, res) => {
   const { query } = req.query;
   if (query) {
-const url = `https://www.prokerala.com/downloads/ringtones/${query}/`;
+const url = `https://www.prokerala.com/downloads/ringtones/search/?q=${query}&mode=search/`;
 axios(url)
   .then(response => {
     if (response.status === 200) {
