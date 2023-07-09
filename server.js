@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const ytdl = require('ytdl-core');
 
-app.get('/formats', async (req, res) => {
+app.get('/youtube-dl', async (req, res) => {
   const videoUrl = req.query.url;
 
   if (!ytdl.validateURL(videoUrl)) {
