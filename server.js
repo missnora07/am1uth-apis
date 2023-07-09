@@ -1,63 +1,33 @@
 const express = require('express');
 const app = express();
-const axios = require('axios');
-const cheerio = require('cheerio');
+const ytdl = require('ytdl-core');
 
-app.get('/api/ringtones', async (req, res) => {
-  const { query } = req.query;
-  if (query) {
-const url = `https://www.prokerala.com/downloads/ringtones/search/?q=${query}&mode=search/`;
-axios(url)
-  .then(response => {
-    if (response.status === 200) {
-      const html = response.data;
-      const ringtoneData = [];
-      const $ = cheerio.load(html);
-      const ringtoneElements = $('.list-item-body');
-      const promises = [];
-      ringtoneElements.each((index, element) => {
-        const title = $(element).find('.list-item-entry a').text().trim();
-        const downloadLink = $(element).find('.list-item-entry a').attr('href');
-        const duration = $(element).find('.d-block.list-item-entry').text().trim();
-        if (downloadLink) {
-          const fullDownloadLink = "https://www.prokerala.com" + downloadLink;
-          const promise = axios(fullDownloadLink)
-            .then(response => {
-              const htmlCode = response.data;
-              const $ = cheerio.load(htmlCode);
-              const sourceTag = $('source');
-              const srcUrl = sourceTag.attr('src');
-              if (srcUrl) {
-                ringtoneData.push({ title, srcUrl, duration });
-              } else {
-                throw new Error('Invalid download link: ' + fullDownloadLink);
-              }
-            })
-            .catch(error => {
-              res.send('Error: ' + error);
-            });
-          promises.push(promise);
-        }
-      });
-      Promise.all(promises)
-        .then(() => {
-          res.send(ringtoneData); // Send the data using res.send
-        })
-  .catch(error => {
-    res.send('An error occurred: ' + error);
-  });
-    } else {
-      res.send('Request failed with status code:' + response.status);
-    }
-  })
-  .catch(error => {
-    res.send('An error occurred: ' + error);
-  })
-  } else {
-    res.status(400).send('Query parameter "query" is required.');
+app.get('/formats', async (req, res) => {
+  const videoUrl = req.query.url;
+
+  if (!ytdl.validateURL(videoUrl)) {
+    res.status(400).json({ error: 'Invalid YouTube URL' });
+    return;
+  }
+
+  try {
+    const info = await ytdl.getInfo(videoUrl);
+    const { title, thumbnails } = info.videoDetails;
+    const thumbnail = thumbnails[0]?.url || '';
+    const formats = info.formats.map((format) => ({
+      itag: format.itag,
+      quality: format.qualityLabel || format.quality,
+      mimeType: format.mimeType,
+      url: format.url,
+    }));
+    res.json({ title,thumbnail,formats });
+  } catch (error) {
+    console.error('Error occurred:', error);
+    res.status(500).json({ error: 'An error occurred' });
   }
 });
+
 const port = 3000;
 app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });
