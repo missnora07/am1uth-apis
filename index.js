@@ -1,12 +1,12 @@
 const express = require('express');
-const youtubedl = require('youtube-dl');
+const ytdl = require('node-ytdl-core');
 const cors = require('cors');
 
 const app = express();
 const port = 3000;
 
 app.use(cors());
-app.get('/download', (req, res) => {
+app.get('/download', async (req, res) => {
   const videoUrl = req.query.url;
 
   if (!videoUrl) {
@@ -14,33 +14,30 @@ app.get('/download', (req, res) => {
     return;
   }
 
-  const options = [
-    '--format=best',
-    '--no-playlist',
-    videoUrl,
-  ];
+  try {
+    const info = await ytdl.getInfo(videoUrl);
+    const formats = ytdl.filterFormats(info.formats, 'audioandvideo');
+    const hasAudio = formats.some((format) => format.hasAudio);
+    const hasVideo = formats.some((format) => format.hasVideo);
+    const audioBitrate = formats.find((format) => format.hasAudio)?.audioBitrate || 0;
 
-  youtubedl.getInfo(videoUrl, options, (err, info) => {
-    if (err) {
-      res.status(500).json({ error: 'Failed to fetch video information' });
-      return;
-    }
-
-    const { title, thumbnail, formats } = info;
-
-    const videoFiles = formats
-      .filter((format) => format.format_note !== 'DASH audio' && format.acodec !== 'none')
-      .map((format) => ({
-        format: format.format_note,
+    const videoInfo = {
+      title: info.videoDetails.title,
+      thumbnail: info.videoDetails.thumbnails[0].url,
+      files: formats.map((format) => ({
+        format: format.qualityLabel,
         url: format.url,
-      }));
+      })),
+      hasAudio,
+      hasVideo,
+      audioBitrate,
+    };
 
-    res.json({
-      title,
-      thumbnail,
-      files: videoFiles,
-    });
-  });
+    res.json(videoInfo);
+  } catch (error) {
+    console.error('Error:', error.message);
+    res.status(500).json({ error: 'Failed to fetch video information' });
+  }
 });
 
 app.listen(port, () => {
