@@ -16,13 +16,16 @@ app.get('/youtube', async (req, res) => {
     const info = await ytdl.getInfo(videoUrl);
     const { title, thumbnails } = info.videoDetails;
     const thumbnail = thumbnails[0]?.url || '';
-    const formats = info.formats.map((format) => ({
+
+    const files = info.formats.map((format) => ({
       itag: format.itag,
       quality: format.qualityLabel || format.quality,
       mimeType: format.mimeType,
       url: format.url,
+      audioBitrate: format.audioBitrate, // Add audioBitrate property
     }));
-    res.json({ title,thumbnail,formats });
+
+    res.json({ title, thumbnail, files });
   } catch (error) {
     console.error('Error occurred:', error);
     res.status(500).json({ error: 'An error occurred' });
