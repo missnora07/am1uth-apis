@@ -17,5 +17,6 @@
   "dependencies": {
     "express": "^4.17.1",
     "ytdl-core": "^4.9.1"
+    "cors": "^2.8.5"
   }
 }
