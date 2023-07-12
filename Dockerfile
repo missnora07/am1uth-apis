@@ -5,4 +5,4 @@ COPY package*.json ./
 COPY . .
 RUN npm install express youtube-dl cors
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["node", "index.js"]
