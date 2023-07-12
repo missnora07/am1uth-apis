@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const { exec } = require('child_process');
 const ffmpeg = require('fluent-ffmpeg');
-comst cors = require('cors');
+const cors = require('cors');
 
 // Endpoint to handle YouTube video download
 app.use(cors());
