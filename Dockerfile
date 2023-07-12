@@ -3,6 +3,6 @@ RUN git clone https://github.com/missnora07/am1uth-apis /railway/Nora07
 WORKDIR /railway/Nora07
 COPY package*.json ./
 COPY . .
-RUN npm install express ytdl-core cors
+RUN npm install express fluent-ffmpeg cors
 EXPOSE 3000
 CMD ["node", "server.js"]
