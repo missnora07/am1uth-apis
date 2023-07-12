@@ -1,8 +1,10 @@
 const express = require('express');
 const app = express();
 const ytdl = require('ytdl-core');
+const cors = require('cors');
 
-app.get('/youtube-dl', async (req, res) => {
+app.use(cors());
+app.get('/youtube', async (req, res) => {
   const videoUrl = req.query.url;
 
   if (!ytdl.validateURL(videoUrl)) {
