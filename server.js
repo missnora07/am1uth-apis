@@ -17,14 +17,16 @@ app.get('/youtube', async (req, res) => {
     const { title, thumbnails } = info.videoDetails;
     const thumbnail = thumbnails[0]?.url || '';
 
-    const files = info.formats.map((format) => ({
-      itag: format.itag,
-      quality: format.qualityLabel || format.quality,
-      mimeType: format.mimeType,
-      url: format.url,
-      audioBitrate: format.audioBitrate, // Add audioBitrate property
-    }));
-
+    const files = info.formats.map((format) => {
+      const withSound = format.hasAudio ? '' : 'No sound';
+      return {
+        itag: format.itag,
+        quality: format.qualityLabel || format.quality,
+        mimeType: format.mimeType,
+        url: format.url,
+        info: withSound,
+      };
+    });
     res.json({ title, thumbnail, files });
   } catch (error) {
     console.error('Error occurred:', error);
