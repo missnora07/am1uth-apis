@@ -1,7 +1,7 @@
 {
-  "name": "youtube-downloader",
+  "name": "youtube-downloader-api",
   "version": "1.0.0",
-  "description": "YouTube Downloader API",
+  "description": "YouTube Downloader API using Node.js",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -10,6 +10,6 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.17.1",
-    "youtube-dl": "^2.1.2"
+    "youtube-dl": "^1.22.0"
   }
 }
