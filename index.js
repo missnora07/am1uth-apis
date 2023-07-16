@@ -32,7 +32,17 @@ async function getPostLink(url) {
         var imgEl = divEl.querySelector('img');
         link = imgEl.getAttribute("src");
       }
-    } else {
+    } else if (root.querySelector('.MediaScrollImageContainer')) {
+      var links = [];
+  var divEls = root.querySelectorAll('.MediaScrollImageContainer');
+  
+  divEls.forEach(function(divEl) {
+    var imgEl = divEl.querySelector('img');
+    var lin = imgEl.getAttribute("src");
+    links.push(lin);
+  });
+  link = links;
+      } else {
       return {error:'Given post url is not a media url' }
     }
 
