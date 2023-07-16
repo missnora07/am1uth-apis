@@ -45,7 +45,7 @@ async function getPostLink(url) {
       
       var urls = links;
       } else {
-      return {error:'Given post url is not a media url' }
+      return {error:'Given url is not a media url' }
     }
 
     while (link.search("&amp;") !== -1) {
