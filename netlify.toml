@@ -1,3 +1,7 @@
+[build]
+  command = "npm install && npm run build"
+  functions = "functions"
+
 [[redirects]]
   from = "/api/threads/*"
   to = "/.netlify/functions/threads/:splat"
@@ -15,6 +19,5 @@
   to = "/index.html"
   status = 200
 
-[[functions]]
-  name = "threads"
-  memory = 512
+[functions]
+  external_node_modules = []
