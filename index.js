@@ -1,20 +1,22 @@
-const express = require('express');
 const axios = require('axios');
 const { parse } = require('node-html-parser');
 
-const app = express();
-const PORT = 3000;
-
-app.get('/api/threads', async (req, res) => {
-  const { url } = req.query;
+exports.handler = async (event, context) => {
+  const { url } = event.queryStringParameters;
 
   try {
     const result = await getPostLink(url);
-    res.json(result);
+    return {
+      statusCode: 200,
+      body: JSON.stringify(result),
+    };
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred'});
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'An error occurred' }),
+    };
   }
-});
+};
 
 async function getPostLink(url) {
   try {
@@ -23,49 +25,50 @@ async function getPostLink(url) {
     const root = parse(response.data);
 
     let link = '';
+    let caption = '';
 
     if (root.querySelector('.SingleInnerMediaContainerVideo.SingleInnerMediaContainer')) {
       link = getVideoLinkFromHtml(response.data);
-    } else if(root.querySelector('.SingleInnerMediaContainer')) {
-      var divEl = root.querySelector('.SingleInnerMediaContainer');
+    } else if (root.querySelector('.SingleInnerMediaContainer')) {
+      const divEl = root.querySelector('.SingleInnerMediaContainer');
       if (divEl) {
-        var imgEl = divEl.querySelector('img');
+        const imgEl = divEl.querySelector('img');
         link = imgEl.getAttribute("src");
       }
     } else if (root.querySelector('.MediaScrollImageContainer')) {
-  var links = [];
-  var divEls = root.querySelectorAll('.MediaScrollImageContainer');
-  
-  divEls.forEach(function(divEl) {
-    var imgEl = divEl.querySelector('img');
-    var lin = imgEl.getAttribute("src");
-    lin = lin.replace("&amp;","&");
-    links.push(lin);
-  });
-      
-      var urls = links;
-      } else {
-      return {error:'Given url is not a media url' }
+      const links = [];
+      const divEls = root.querySelectorAll('.MediaScrollImageContainer');
+
+      divEls.forEach(function(divEl) {
+        const imgEl = divEl.querySelector('img');
+        let lin = imgEl.getAttribute("src");
+        lin = lin.replace("&amp;", "&");
+        links.push(lin);
+      });
+
+      const urls = links;
+      link = urls;
+    } else {
+      return { error: 'Given url is not a media url' };
     }
 
     while (link.search("&amp;") !== -1) {
       link = link.replace("&amp;", "&");
     }
-    link = urls || link;
-    const caption = await getCaptionFromHtml(response.data);
+    link = link || urls;
+    caption = await getCaptionFromHtml(response.data) || 'No caption';
 
     return { link, caption };
   } catch (error) {
-    throw new Error('Failed to fetch post link ');
+    throw new Error('Failed to fetch post link');
   }
 }
-
 
 async function getCaptionFromHtml(html) {
   const root = parse(html);
 
   let caption = root.querySelector('.BodyTextContainer')?.text;
-  if (caption == undefined)
+  if (!caption)
     caption = 'No caption';
   return caption;
 }
@@ -73,10 +76,7 @@ async function getCaptionFromHtml(html) {
 function getVideoLinkFromHtml(html) {
   const code = parse(html);
   const vidEl = code.querySelector('.SingleInnerMediaContainerVideo.SingleInnerMediaContainer');
-  var videoUrl = vidEl.querySelector('source');
-  var videoLink = videoUrl.getAttribute("src");
+  const videoUrl = vidEl.querySelector('source');
+  const videoLink = videoUrl.getAttribute("src");
   return videoLink;
 }
-app.listen(PORT, () => {
-  console.log(`API server is running on port ${PORT}`);
-});
