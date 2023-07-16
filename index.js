@@ -1,45 +1,70 @@
 const express = require('express');
-const ytdl = require('node-ytdl-core');
-const cors = require('cors');
+const axios = require('axios');
+const { parse } = require('node-html-parser');
 
 const app = express();
-const port = 3000;
+const PORT = 3000;
 
-app.use(cors());
-app.get('/download', async (req, res) => {
-  const videoUrl = req.query.url;
-
-  if (!videoUrl) {
-    res.status(400).json({ error: 'No video URL provided' });
-    return;
-  }
+app.get('/api/threads', async (req, res) => {
+  const { url } = req.query;
 
   try {
-    const info = await ytdl.getInfo(videoUrl);
-    const formats = ytdl.filterFormats(info.formats, 'audioandvideo');
-    const hasAudio = formats.some((format) => format.hasAudio);
-    const hasVideo = formats.some((format) => format.hasVideo);
-    const audioBitrate = formats.find((format) => format.hasAudio)?.audioBitrate || 0;
-
-    const videoInfo = {
-      title: info.videoDetails.title,
-      thumbnail: info.videoDetails.thumbnails[0].url,
-      files: formats.map((format) => ({
-        format: format.qualityLabel,
-        url: format.url,
-      })),
-      hasAudio,
-      hasVideo,
-      audioBitrate,
-    };
-
-    res.json(videoInfo);
+    const result = await getPostLink(url);
+    res.json(result);
   } catch (error) {
-    console.error('Error:', error.message);
-    res.status(500).json({ error: 'Failed to fetch video information' });
+    res.status(500).json({ error: 'An error occurred'});
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+async function getPostLink(url) {
+  try {
+    url = url + "/embed/";
+    const response = await axios.get(url);
+    const root = parse(response.data);
+
+    let link = '';
+
+    if (root.querySelector('.SingleInnerMediaContainerVideo.SingleInnerMediaContainer')) {
+      link = getVideoLinkFromHtml(response.data);
+    } else if(root.querySelector('.SingleInnerMediaContainer')) {
+      var divEl = root.querySelector('.SingleInnerMediaContainer');
+      if (divEl) {
+        var imgEl = divEl.querySelector('img');
+        link = imgEl.getAttribute("src");
+      }
+    } else {
+      return {error:'Given post url is not a media url' }
+    }
+
+    while (link.search("&amp;") !== -1) {
+      link = link.replace("&amp;", "&");
+    }
+
+    const caption = await getCaptionFromHtml(response.data);
+
+    return { link, caption };
+  } catch (error) {
+    throw new Error('Failed to fetch post link, ');
+  }
+}
+
+
+async function getCaptionFromHtml(html) {
+  const root = parse(html);
+
+  let caption = root.querySelector('.BodyTextContainer')?.text;
+  if (caption == undefined)
+    caption = 'No caption';
+  return caption;
+}
+
+function getVideoLinkFromHtml(html) {
+  const code = parse(html);
+  const vidEl = code.querySelector('.SingleInnerMediaContainerVideo.SingleInnerMediaContainer');
+  var videoUrl = vidEl.querySelector('source');
+  var videoLink = videoUrl.getAttribute("src");
+  return videoLink;
+}
+app.listen(PORT, () => {
+  console.log(`API server is running on port ${PORT}`);
 });
