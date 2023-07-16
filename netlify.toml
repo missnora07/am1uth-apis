@@ -1,0 +1,36 @@
+[[redirects]]
+  from = "/api/threads"
+  to = "/.netlify/functions/threads"
+  method = "POST"
+
+[build]
+  command = "npm install && npm run build"
+  functions = "functions"
+
+[build.environment]
+  NODE_VERSION = "14"
+
+[[plugins]]
+  package = "@netlify/plugin-functions-core"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[plugins]]
+  package = "netlify-plugin-inline-functions-env"
+
+[[functions]]
+  name = "threads"
+  memory = 512
+
+[[headers]]
+  for = "/*"
+    [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
