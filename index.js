@@ -33,15 +33,17 @@ async function getPostLink(url) {
         link = imgEl.getAttribute("src");
       }
     } else if (root.querySelector('.MediaScrollImageContainer')) {
-      var links = [];
+  var links = [];
   var divEls = root.querySelectorAll('.MediaScrollImageContainer');
   
   divEls.forEach(function(divEl) {
     var imgEl = divEl.querySelector('img');
     var lin = imgEl.getAttribute("src");
+    lin = lin.replace("&amp;","&");
     links.push(lin);
   });
-  link = links;
+      
+      var urls = links;
       } else {
       return {error:'Given post url is not a media url' }
     }
@@ -49,12 +51,12 @@ async function getPostLink(url) {
     while (link.search("&amp;") !== -1) {
       link = link.replace("&amp;", "&");
     }
-
+    link = urls || link;
     const caption = await getCaptionFromHtml(response.data);
 
     return { link, caption };
   } catch (error) {
-    throw new Error('Failed to fetch post link, ');
+    throw new Error('Failed to fetch post link ');
   }
 }
 
