@@ -7,13 +7,11 @@ const PORT = 3000;
 
 app.get('/api/threads', async (req, res) => {
   const { url } = req.query;
-  if(url.includes('/?igshid')) {
+  if (url.includes('/?igshid')) {
     url = url.split('/?igshid')[0];
-  } else if (url.lastIndexOf("/") === url.length - 1 && !url.includes('/?igshid')) {
+} else if (url.lastIndexOf("/") === url.length - 1 && !url.includes('/?igshid')) {
     url = url.slice(0, -1);
-} else {
-    url = url;
-   } 
+}
 
   try {
     const result = await getPostLink(url);
