@@ -1,10 +1,12 @@
 const express = require('express');
 const axios = require('axios');
+const cors = require('cors');
 const { parse } = require('node-html-parser');
 
 const app = express();
 const PORT = 3000;
 
+app.use(cors());
 app.get('/api/threads', async (req, res) => {
 let url = req.query.url;
 if (url.includes('/?igshid')) {
