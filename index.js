@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const cheerio = require('cheerio');
 const { parse } = require('node-html-parser');
 
 const app = express();
@@ -84,6 +85,63 @@ function getVideoLinkFromHtml(html) {
   var videoLink = videoUrl.getAttribute("src");
   return videoLink;
 }
+
+app.get('/api/profileInfo', async (req, res) => {
+  try {
+    const query = req.query
+    const q = query.query || query
+
+    if(!query) {
+      res.status(400).json({ error: 'No query Provided' });
+      return;
+    }
+    
+    const url = `https://www.threads.net/${q}`
+    const response = await axios.get(url);
+    const $ = cheerio.load(response.data);
+    const title = $('title').text();
+    
+    if (!title.includes('@')) {
+      res.status(404).json({ error: 'User Not Found' });
+      return;
+    }
+    
+    const pp_url = $(`meta[property='og:image']`).attr('content');
+    const desc = $(`meta[property='og:description']`).attr('content')
+
+    let descParts = "" 
+    if (desc) {
+   descParts = desc.split('. ');
+} 
+    
+    const name = title.split("(")[0];
+    let bio = "" 
+    let followers = "" 
+    const username = q
+    if (descParts !== "") {
+     bio = descParts[0]
+     followers = descParts[1].split(" ")[0];
+     }
+    
+    const profileInfo = {
+      username: username, 
+      name: name,
+      bio: bio,
+      followers: followers,
+      pp_url: pp_url,
+    };
+
+    const formattedJSON = JSON.stringify(profileInfo, null, 2);
+
+    res.set('Content-Type', 'application/json');
+    res.send(formattedJSON);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log(`API server is running on port ${PORT}`);
 })
