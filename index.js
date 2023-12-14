@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const cheerio = require('cheerio');
+const bodyParser = require('body-parser');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { parse } = require('node-html-parser');
 
@@ -169,6 +170,39 @@ app.get("/api/gemini", async (req, res) => {
   res.send(JSON.stringify(response,null,2));
 });
 
+app.use(bodyParser.json());
+app.post('/api/gemini-vision', async (req, res) => {
+  const image = req.body.image;
+  const prompt = req.body.prompt;
+  const mime = req.body.mime_type;
+  const apiKey = req.headers.api_key;
+
+  if (!image || !prompt || !apiKey || !mime) {
+    return res.status(400).send('Base64 image data, prompt, and API key are required.');
+  }
+  
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+  
+    let data = {
+      inlineData: {
+        data: image,
+        mimeType: mime
+      },
+    };
+  
+    const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
+
+    const imageParts = [data];
+
+    const result = await model.generateContent([prompt, ...imageParts]);
+    const response = await result.response;
+    res.send(JSON.stringify(response, null, 2));
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal server error");
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`API server is running on port ${PORT}`);
