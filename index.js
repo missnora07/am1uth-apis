@@ -170,7 +170,7 @@ app.get("/api/gemini", async (req, res) => {
   res.send(JSON.stringify(response,null,2));
 });
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '20mb' })));
 app.post('/api/gemini-vision', async (req, res) => {
   const image = req.body.image;
   const prompt = req.body.prompt;
