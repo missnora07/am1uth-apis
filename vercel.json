@@ -5,7 +5,7 @@
   ],
   "routes": [
     { "src": "/api/threads", "dest": "index.js" },
-    { "src": "/api/profileInfo", "dest": "index.js" }
+    { "src": "/api/profileInfo", "dest": "index.js" },
     { "src": "/api/gemini", "dest": "index.js" }
   ]
 }
