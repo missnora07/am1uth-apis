@@ -171,24 +171,31 @@ app.get("/api/gemini", async (req, res) => {
   res.send(JSON.stringify(response,null,2));
 });
 
-app.use(bodyParser.json({ limit: '20mb' }));
-app.post('/api/gemini-vision', async (req, res) => {
-  const image = req.body.image;
-  const prompt = req.body.prompt;
-  const mime = req.body.mime_type;
-  const apiKey = req.headers.api_key;
 
-  if (!image || !prompt || !apiKey || !mime) {
-    return res.status(400).send('Base64 image data, prompt, and API key are required.');
+const storage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const tempFolder = 'temp/';
+    await fs.mkdir(tempFolder, { recursive: true });
+    cb(null, tempFolder);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
   }
-  
+});
+
+const upload = multer({ storage: storage });
+
+app.post('/api/gemini-vision', upload.single('image'), async (req, res) => {
+  const imagePath = req.file.path;
+  const image = fs.readFileSync(imagePath, 'base64'); // Remove the array wrapping
+
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
   
     let data = {
       inlineData: {
         data: image,
-        mimeType: mime
+        mimeType: 'image/*'
       },
     };
   
@@ -199,6 +206,7 @@ app.post('/api/gemini-vision', async (req, res) => {
     const result = await model.generateContent([prompt, ...imageParts]);
     const response = await result.response;
     res.send(JSON.stringify(response, null, 2));
+    await fs.unlink(imagePath);
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Internal server error");
