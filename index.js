@@ -187,6 +187,7 @@ const upload = multer({ storage: storage });
 
 app.post('/api/gemini-vision', upload.single('image'), async (req, res) => {
   const imagePath = req.file.path;
+  const prompt = req.body.prompt || 'Default prompt text'; // Use the provided prompt or a default one
   const image = fs.readFileSync(imagePath, 'base64'); // Remove the array wrapping
 
   try {
