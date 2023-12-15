@@ -2,7 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const cheerio = require('cheerio');
-const bodyParser = require('body-parser');
+const multer = require('multer');
+const fs = require('fs/promises');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { parse } = require('node-html-parser');
 
