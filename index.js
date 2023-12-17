@@ -196,7 +196,7 @@ app.post('/api/gemini-vision', async (req, res) => {
         };
         const result = await model.generateContent([prompt, data]);
         const response = {
-            response: result.response.text()
+            text: result.response.text()
         };
         res.status(200).send(JSON.stringify(response, null, 2));
     } catch (error) {
