@@ -2,8 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const cheerio = require('cheerio');
-const multer = require('multer');
-const fs = require('fs/promises');
+const bodyParser = require('body-parser');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { parse } = require('node-html-parser');
 
@@ -172,46 +171,38 @@ app.get("/api/gemini", async (req, res) => {
 });
 
 
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const tempFolder = 'temp/';
-    await fs.mkdir(tempFolder, { recursive: true });
-    cb(null, tempFolder);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
+app.use(bodyParser.json());
+app.post('/api/gemini-vision', async (req, res) => {
 
-const upload = multer({ storage: storage });
+    const image = req.body.image;
+    const prompt = req.body.prompt;
+    const mime = req.body.mime_type;
+    const apiKey = req.headers.api_key;
 
-app.post('/api/gemini-vision', upload.single('image'), async (req, res) => {
-  const imagePath = req.file.path;
-  const prompt = req.body.prompt || 'Default prompt text'; // Use the provided prompt or a default one
-  const image = fs.readFileSync(imagePath, 'base64'); // Remove the array wrapping
+    if (!image || !prompt || !apiKey || !mime) {
+        return res.status(400).send('Base64 image data, prompt, and API key are required.');
+    }
 
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-  
-    let data = {
-      inlineData: {
-        data: image,
-        mimeType: 'image/*'
-      },
-    };
-  
-    const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
-
-    const imageParts = [data];
-
-    const result = await model.generateContent([prompt, ...imageParts]);
-    const response = await result.response;
-    res.send(JSON.stringify(response, null, 2));
-    await fs.unlink(imagePath);
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).send("Internal server error");
-  }
+    try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({
+            model: "gemini-pro-vision"
+        });
+        const data = {
+            inlineData: {
+                data: image,
+                mimeType: mime,
+            },
+        };
+        const result = await model.generateContent([prompt, data]);
+        const response = {
+            response: result.response.text()
+        };
+        res.status(200).send(JSON.stringify(response, null, 2));
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Internal server error");
+    }
 });
 
 app.listen(PORT, () => {
