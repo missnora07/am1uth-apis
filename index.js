@@ -205,6 +205,11 @@ app.post('/api/gemini-vision', async (req, res) => {
     }
 });
 
+app.get("/api/ping", async (req, res) => {
+  let output = { status: true, code: 200, message: "Pong!" };
+  res.status(200).send(JSON.stringify(output, null, 2));
+});
+
 app.listen(PORT, () => {
   console.log(`API server is running on port ${PORT}`);
 })
