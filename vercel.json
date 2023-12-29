@@ -7,6 +7,7 @@
     { "src": "/api/threads", "dest": "index.js" },
     { "src": "/api/profileInfo", "dest": "index.js" },
     { "src": "/api/gemini", "dest": "index.js" },
-    { "src": "/api/gemini-vision", "dest": "index.js" }
+    { "src": "/api/gemini-vision", "dest": "index.js" },
+    { "src": "/api/ping", "dest": "index.js" }
   ]
 }
