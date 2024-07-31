@@ -12,9 +12,9 @@ const PORT = 3000;
 app.use(cors());
 app.get('/api/threads', async (req, res) => {
 let url = req.query.url;
-if (url.includes('/?igshid')) {
-  url = url.split('/?igshid')[0];
-} else if (url.lastIndexOf("/") === url.length - 1 && !url.includes('/?igshid')) {
+if (url.includes('?xmt=')) {
+  url = url.split('?xmt=')[0];
+} else if (url.lastIndexOf("/") === url.length - 1 && !url.includes('?xmt=')) {
   url = url.slice(0, -1);
 }
 
